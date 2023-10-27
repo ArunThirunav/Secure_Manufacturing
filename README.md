@@ -8,3 +8,5 @@
         1. Create GUI using Py Simple GUI
 
 ## Known Bugs
+
+1. If the file is used to create second time it doesnt take it.
