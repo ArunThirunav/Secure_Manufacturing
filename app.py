@@ -1,6 +1,9 @@
 import PySimpleGUI as sg
 import sys
+import os
 import hashlib
+from zipfile import ZipFile
+
 
 sg.theme('TealMono')
 t1=sg.Input("", key='sign_lineEdit')
@@ -16,7 +19,7 @@ tab2=[[t2, f2], [b2, b3]]
 
 layout = [[sg.TabGroup([
    [sg.Tab('Signature', tab1),
-   sg.Tab('Verify and Flash', tab2)]])]
+   sg.Tab('Verify & Flash', tab2)]])]
 ]
 window = sg.Window('Danfoss Secure Manufacturing Tool', layout)
 previous_filename = ""
@@ -29,12 +32,12 @@ def calculateHash(filename):
     
 def createSignatureFile(fileName):
     hashValue = calculateHash(fileName)
-    with open(fileName.split(".")[0]+"_signature", "w") as f:
+    with open(fileName.split(".")[0]+"_signature.txt", "w") as f:
         f.write(hashValue)
         return True
 
 def verifySignatureFile(fileName):
-    with open(fileName.split(".")[0]+"_signature", "r") as f:
+    with open(fileName.split(".")[0]+"_signature.txt", "r") as f:
         bytes = f.read()
         if calculateHash(fileName) == bytes:
             return True
@@ -42,22 +45,60 @@ def verifySignatureFile(fileName):
             return False
 
 def signButtonHandler():
+    global previous_filename
+    print(values["sign_lineEdit"])
     if previous_filename != values["sign_lineEdit"]:
         previous_filename = values["sign_lineEdit"]
-        if createSignatureFile(values["sign_lineEdit"]):
-            sg.popup_auto_close("Signature File Created")
+        if createSignatureFile(previous_filename):
+            if zipFileCreation(previous_filename):
+                os.remove(previous_filename.split(".")[0]+"_signature.txt")
+                sg.popup_ok("Signature File Created")
+            else:
+                sg.popup_error("Failed during package creation")
         else:
             sg.popup_error("Cannot Create Signature File")
     else:
-        print("Enter Proper Firmware File")
+        sg.popup_error("Same Signature File")
 
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED: # if user closes window or clicks cancel
-        break
-    if event == "Sign":
-        signButtonHandler()
-    if event == "Verify":
-        pass
+
+def verifyButtonhandler()->None:
+    if verifySignatureFile(values["verify_lineEdit"]):
+        sg.popup_notify("Valid FW File")
+    else:
+        sg.popup_error("Invalid FW File")
+
+
+def zipFileCreation(cur_path):
+    filename = os.path.basename(cur_path)
+    zip_filename = filename.split(".")[0]
+    signature_filename = zip_filename+"_signature.txt"
+    cur_path = os.path.dirname(cur_path)
+
+    with ZipFile(cur_path+"/"+zip_filename+".cro", 'w') as zip_object:
+        try:
+            zip_object.write(filename)
+            zip_object.write(signature_filename)
+            print(101)
+            return True
+        except FileNotFoundError:
+            return False
+
+# if new function need to be added add it in this function pointer
+EVENT_INDEX = 0
+FUNCTION_INDEX = 1
+
+function_pointer = [
+    ["Sign", signButtonHandler],
+    ["Verify", verifyButtonhandler]
+]
+
+if __name__ == "__main__":
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED:
+            break
+        for i in function_pointer:
+            if i[EVENT_INDEX] == event:
+                i[FUNCTION_INDEX]()
 
 window.close()
