@@ -4,15 +4,17 @@ import os
 import hashlib
 from zipfile import ZipFile
 
+"""
+"""
 
-sg.theme('TealMono')
-t1=sg.Input("", key='sign_lineEdit')
+sg.theme('SystemDefault')
+t1=sg.Input("", key='sign_lineEdit', readonly='True')
 l1 = sg.FileBrowse("Firmware File")
 b1 = sg.Button("Sign")
 tab1=[[t1,l1], [b1]]
 
 t2=sg.Input("", key='verify_lineEdit')
-f2 = sg.FileBrowse("Veification File")
+f2 = sg.FileBrowse("Verification File")
 b2 = sg.Button("Verify")
 b3 = sg.Button("Verify&Flash")
 tab2=[[t2, f2], [b2, b3]]
@@ -44,9 +46,8 @@ def verifySignatureFile(fileName):
         else:
             return False
 
-def signButtonHandler():
+def signButtonHandler()->None:
     global previous_filename
-    print(values["sign_lineEdit"])
     if previous_filename != values["sign_lineEdit"]:
         previous_filename = values["sign_lineEdit"]
         if createSignatureFile(previous_filename):
@@ -61,7 +62,7 @@ def signButtonHandler():
         sg.popup_error("Same Signature File")
 
 
-def verifyButtonhandler()->None:
+def verifyButtonHandler()->None:
     if verifySignatureFile(values["verify_lineEdit"]):
         sg.popup_notify("Valid FW File")
     else:
@@ -78,7 +79,6 @@ def zipFileCreation(cur_path):
         try:
             zip_object.write(filename)
             zip_object.write(signature_filename)
-            print(101)
             return True
         except FileNotFoundError:
             return False
@@ -89,7 +89,7 @@ FUNCTION_INDEX = 1
 
 function_pointer = [
     ["Sign", signButtonHandler],
-    ["Verify", verifyButtonhandler]
+    ["Verify", verifyButtonHandler]
 ]
 
 if __name__ == "__main__":
@@ -102,3 +102,4 @@ if __name__ == "__main__":
                 i[FUNCTION_INDEX]()
 
 window.close()
+
