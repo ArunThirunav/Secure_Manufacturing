@@ -3,6 +3,7 @@ import sys
 import os
 import hashlib
 from zipfile import ZipFile
+import time
 
 """
 """
@@ -39,12 +40,15 @@ def createSignatureFile(fileName):
         return True
 
 def verifySignatureFile(fileName):
-    with open(fileName.split(".")[0]+"_signature.txt", "r") as f:
-        bytes = f.read()
-        if calculateHash(fileName) == bytes:
-            return True
-        else:
-            return False
+    try:
+        with open(fileName.split(".")[0]+"_signature.txt", "r") as f:
+            bytes = f.read()
+            if calculateHash(fileName) == bytes:
+                return True
+            else:
+                return False
+    except:
+        sg.popup_error("Cannot Verify the File")
 
 def signButtonHandler()->None:
     global previous_filename
@@ -70,6 +74,7 @@ def verifyButtonHandler()->None:
 
 
 def zipFileCreation(cur_path):
+    file_path = cur_path
     filename = os.path.basename(cur_path)
     zip_filename = filename.split(".")[0]
     signature_filename = zip_filename+"_signature.txt"
@@ -77,8 +82,8 @@ def zipFileCreation(cur_path):
 
     with ZipFile(cur_path+"/"+zip_filename+".cro", 'w') as zip_object:
         try:
-            zip_object.write(filename)
-            zip_object.write(signature_filename)
+            zip_object.write(file_path)
+            zip_object.write(cur_path+"/"+signature_filename)
             return True
         except FileNotFoundError:
             return False
