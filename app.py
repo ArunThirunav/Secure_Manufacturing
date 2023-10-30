@@ -31,6 +31,7 @@ previous_filename = ""
 def calculateHash(filename):
     with open(filename,"rb") as f:
         bytes = f.read()
+        print("Length: ", len(bytes))
         return hashlib.sha256(bytes).hexdigest()
     
 def createSignatureFile(fileName):
