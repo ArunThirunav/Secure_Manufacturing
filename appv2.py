@@ -31,7 +31,11 @@ CIPHER_KEY_LEN = 64
 
 def signButtonHandler(filename)->None:
     global previous_filename
+    print("Enc_File_Location: ", filename)
+    enc_path = os.path.dirname(filename)
     enc_filename = (os.path.basename(filename)).split(".")[0] + ".cro"
+    enc_filename = enc_path+"/"+enc_filename
+    
     try:
         with open(filename,"rb") as f:
             bytes = f.read()
